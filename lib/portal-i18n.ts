@@ -17,6 +17,8 @@ export const askText = {
     inputLabel: "Ask Shahi Meva",
     homeLabel: "Shahi Meva Website Assistant home",
     brandLabel: "WEBSITE ASSISTANT",
+    brandLine1: "Website",
+    brandLine2: "Assistant",
     languageLabel: "Language",
     modeLabel: "Assistant mode",
     searchConversation: "Search conversation",
@@ -66,6 +68,8 @@ export const askText = {
     inputLabel: "शाही मेवा से पूछें",
     homeLabel: "शाही मेवा वेबसाइट सहायक का होम पेज",
     brandLabel: "वेबसाइट सहायक",
+    brandLine1: "वेबसाइट",
+    brandLine2: "सहायक",
     languageLabel: "भाषा",
     modeLabel: "सहायक मोड",
     searchConversation: "बातचीत खोजें",
@@ -111,6 +115,8 @@ export const askText = {
   inputLabel: string;
   homeLabel: string;
   brandLabel: string;
+  brandLine1: string;
+  brandLine2: string;
   languageLabel: string;
   modeLabel: string;
   searchConversation: string;
@@ -150,6 +156,32 @@ export const askText = {
   contact: string;
 }>;
 
+export const menuText = {
+  en: {
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    menuTitle: "Menu",
+    search: "Search",
+    help: "Help",
+    website: "Your Website",
+  },
+  hi: {
+    openMenu: "मेन्यू खोलें",
+    closeMenu: "मेन्यू बंद करें",
+    menuTitle: "मेन्यू",
+    search: "खोजें",
+    help: "सहायता",
+    website: "आपकी वेबसाइट",
+  },
+} as const satisfies Record<Locale, {
+  openMenu: string;
+  closeMenu: string;
+  menuTitle: string;
+  search: string;
+  help: string;
+  website: string;
+}>;
+
 export function getContactWhatsappUrl(question: string): string {
   const message = /[\u0900-\u097f]/u.test(question)
     ? "नमस्ते iSellOnline, मुझे अपनी वेबसाइट एजेंट के साथ कुछ समस्या आ रही है। कृपया जल्द से जल्द मेरी मदद करें। धन्यवाद!"
@@ -177,22 +209,14 @@ export function getContactWhatsappUrl(question: string): string {
   return `https://wa.me/918521567359?text=${encodeURIComponent(message)}`;
 }
 
-export const aboutText = {
+export const helpText = {
   en: {
-    title: "About the assistant",
-    eyebrow: "HELP",
-    intro: "I’m Shahi Meva’s website assistant.",
-    ask: "Ask about products, prices, availability, and business information published by the shop.",
-    voice: "Type a question or send a voice message.",
-    edit: "Merchant tools are available in EDIT.",
+    title: "Need Help?",
+    body: "If you're having trouble updating your website, your changes aren't syncing, or you're seeing an error, get in touch with iSellOnline.",
   },
   hi: {
-    title: "वेबसाइट सहायक के बारे में",
-    eyebrow: "जानकारी",
-    intro: "मैं शाही मेवा का वेबसाइट सहायक हूँ।",
-    ask: "उत्पादों, कीमतों, उपलब्धता और दुकान की प्रकाशित जानकारी के बारे में पूछें।",
-    voice: "सवाल लिखें या आवाज़ में संदेश भेजें।",
-    edit: "दुकान के प्रबंधन के लिए EDIT चुनें।",
+    title: "मदद चाहिए?",
+    body: "अगर आपको अपनी वेबसाइट अपडेट करने में परेशानी हो रही है, आपके बदलाव सिंक नहीं हो रहे हैं या कोई त्रुटि दिखाई दे रही है, तो iSellOnline से संपर्क करें।",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
 
@@ -200,16 +224,12 @@ export const passwordText = {
   en: {
     title: "Enter password to access Edit Mode",
     placeholder: "Enter password",
-    show: "Show password",
-    hide: "Hide password",
     continue: "Enter",
     error: "That password doesn't match. Try again.",
   },
   hi: {
     title: "एडिट मोड में प्रवेश करने के लिए पासवर्ड दर्ज करें",
     placeholder: "पासवर्ड दर्ज करें",
-    show: "पासवर्ड दिखाएँ",
-    hide: "पासवर्ड छिपाएँ",
     continue: "प्रवेश करें",
     error: "पासवर्ड सही नहीं है। कृपया फिर कोशिश करें।",
   },
@@ -557,7 +577,7 @@ export const portalText = {
   hi: {
     home: "संपादन होम",
     greeting: "आप क्या संपादित करना चाहते हैं?",
-    welcome: "शाही मेवा में आपका स्वागत है!",
+    welcome: "शाही मेवा, आपका स्वागत है!",
     knowledge: "ज्ञानकोष",
     inventory: "पूरा स्टॉक",
     request: "वेबसाइट बदलाव का अनुरोध",

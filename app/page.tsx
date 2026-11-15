@@ -7,7 +7,7 @@ import { AskComposer } from "@/components/AskComposer";
 import { Icon } from "@/components/Icon";
 import { PasswordDialog } from "@/components/PasswordDialog";
 import { MerchantPortal } from "@/components/MerchantPortal";
-import { aboutText, askText, editText, localeNames, Locale } from "@/lib/portal-i18n";
+import { askText, editText, helpText, localeNames, Locale, menuText } from "@/lib/portal-i18n";
 import { mapKnowledgeRecords, type KnowledgeEntry, type KnowledgeRecord } from "@/lib/portal-knowledge";
 import { editActions, EditAction, products } from "@/lib/mock-data";
 import {
@@ -135,7 +135,7 @@ function WorkflowDialog({
   title: string;
   children: React.ReactNode;
   onClose: () => void;
-  eyebrow: string;
+  eyebrow?: string;
   closeLabel: string;
 }) {
   return (
@@ -150,7 +150,7 @@ function WorkflowDialog({
         <button aria-label={closeLabel} className="icon-button dialog-close" onClick={onClose} type="button">
           <Icon name="close" />
         </button>
-        <p className="eyebrow">{eyebrow}</p>
+        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h2 id="workflow-dialog-title">{title}</h2>
         {children}
       </section>
@@ -191,6 +191,11 @@ export default function Home() {
   const [utilityDialog, setUtilityDialog] = useState<"info" | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const languageRef = useRef<HTMLDivElement>(null);
+  const [headerLanguageOpen, setHeaderLanguageOpen] = useState(false);
+  const headerLanguageRef = useRef<HTMLDivElement>(null);
   const [sessionRestored, setSessionRestored] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const askInFlight = useRef(false);
@@ -200,8 +205,9 @@ export default function Home() {
   const justSubmittedQuestion = useRef(false);
 
   const askLabels = askText[locale];
-  const aboutLabels = aboutText[locale];
+  const helpLabels = helpText[locale];
   const editLabels = editText[locale];
+  const menuLabels = menuText[locale];
   const activeMessages = mode === "ASK" ? askMessages : editMessages;
   const draft = mode === "ASK" ? askDraft : editDraft;
   const thinkingMessage = askLabels.thinking[Math.floor(askMessages.length / 2) % askLabels.thinking.length];
@@ -257,6 +263,32 @@ export default function Home() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!languageOpen) return;
+    function onPointerDown(event: PointerEvent) {
+      if (languageRef.current && !languageRef.current.contains(event.target as Node)) {
+        setLanguageOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [languageOpen]);
+
+  useEffect(() => {
+    if (!headerLanguageOpen) return;
+    function onPointerDown(event: PointerEvent) {
+      if (headerLanguageRef.current && !headerLanguageRef.current.contains(event.target as Node)) {
+        setHeaderLanguageOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [headerLanguageOpen]);
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
@@ -686,8 +718,8 @@ export default function Home() {
   return (
     <div className="app-shell" lang={locale}>
       <header className="topbar">
-        <a aria-label={askLabels.homeLabel} className="brand" href="/">
-          <span aria-hidden="true" className="brand-mark"><span /><span /></span>
+        <a aria-label={askLabels.homeLabel} className="brand" href="https://shahimeva.vercel.app" rel="noopener noreferrer" target="_blank">
+          <span aria-hidden="true" className="brand-mark"><img alt="" src="/logo.png" /></span>
           <span className="brand-copy"><strong>Shahi Meva</strong><small>{askLabels.brandLabel}</small></span>
         </a>
         <div aria-label={askLabels.modeLabel} className="mode-toggle" role="group">
@@ -697,16 +729,115 @@ export default function Home() {
           </button>
         </div>
         <div className="header-actions">
-          <label className="sr-only" htmlFor="header-language">{askLabels.languageLabel}</label>
-          <select aria-label={askLabels.languageLabel} className="header-language" id="header-language" onChange={(event) => setLocale(event.target.value as Locale)} value={locale}>
-            {(Object.keys(localeNames) as Locale[]).map((key) => <option key={key} value={key}>{localeNames[key]}</option>)}
-          </select>
+          <div className="header-language" ref={headerLanguageRef}>
+            <button
+              aria-expanded={headerLanguageOpen}
+              aria-haspopup="listbox"
+              aria-label={askLabels.languageLabel}
+              className="header-language-trigger"
+              onClick={() => setHeaderLanguageOpen((current) => !current)}
+              type="button"
+            >
+              <span>{localeNames[locale]}</span>
+              <Icon name="chevron" size={14} />
+            </button>
+            {headerLanguageOpen && (
+              <ul className="header-language-menu" role="listbox">
+                {(Object.keys(localeNames) as Locale[]).map((key) => (
+                  <li key={key} role="option" aria-selected={key === locale}>
+                    <button
+                      className={key === locale ? "selected" : ""}
+                      onClick={() => { setLocale(key); setHeaderLanguageOpen(false); }}
+                      type="button"
+                    >
+                      {localeNames[key]}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <button aria-label={askLabels.searchConversation} className="icon-button" onClick={() => setSearchOpen(true)} title={askLabels.searchConversation} type="button"><Icon name="search" /></button>
           <button aria-label={askLabels.aboutPrototype} className="icon-button" onClick={() => setUtilityDialog("info")} title={askLabels.aboutPrototype} type="button"><Icon name="info" /></button>
-          <a aria-label={askLabels.openWebsite} className="icon-button" href="https://shahimeva.vercel.app" rel="noopener noreferrer" target="_blank" title={askLabels.openWebsite}><Icon name="external" /></a>
+          <a aria-label={askLabels.openWebsite} className="icon-button" href="https://shahimeva.vercel.app" rel="noopener noreferrer" target="_blank" title={askLabels.openWebsite}><Icon name="globe" /></a>
           <button aria-label={askLabels.logout} className="icon-button" onClick={logout} title={askLabels.logout} type="button"><Icon name="logout" size={15} /></button>
         </div>
       </header>
+
+      <header className="portal-header">
+        <div className="portal-header-content">
+          <a aria-label={askLabels.homeLabel} className="portal-header-brand" href="https://shahimeva.vercel.app" rel="noopener noreferrer" target="_blank">
+            <span aria-hidden="true" className="brand-mark"><img alt="" src="/logo.png" /></span>
+            <span className="brand-copy"><small>{askLabels.brandLine1}<br />{askLabels.brandLine2}</small></span>
+          </a>
+          <div aria-label={askLabels.modeLabel} className="portal-header-mode" role="group">
+            <button aria-pressed={mode === "ASK"} className={mode === "ASK" ? "mode-active" : ""} onClick={switchToAsk} type="button">ASK</button>
+            <button aria-pressed={mode === "EDIT"} className={mode === "EDIT" ? "mode-active" : ""} onClick={openEdit} type="button">
+              <Icon name={mode === "EDIT" ? "unlock" : "lock"} size={13} /> EDIT
+            </button>
+          </div>
+          <button
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? menuLabels.closeMenu : menuLabels.openMenu}
+            className={`portal-header-hamburger${menuOpen ? " open" : ""}`}
+            onClick={() => setMenuOpen((current) => !current)}
+            title={menuOpen ? menuLabels.closeMenu : menuLabels.openMenu}
+            type="button"
+          >
+            <Icon name={menuOpen ? "close" : "menu"} size={20} />
+          </button>
+        </div>
+      </header>
+
+      <div className={`portal-drawer-overlay ${menuOpen ? "open" : ""}`} onClick={() => setMenuOpen(false)} role="presentation" />
+      <aside aria-label={menuLabels.menuTitle} aria-hidden={!menuOpen} className={`portal-drawer ${menuOpen ? "open" : ""}`} role="dialog">
+        <div className="portal-drawer-content">
+          <div className="portal-drawer-language" ref={languageRef}>
+            <button
+              aria-expanded={languageOpen}
+              aria-haspopup="listbox"
+              aria-label={askLabels.languageLabel}
+              className="portal-drawer-language-trigger"
+              onClick={() => setLanguageOpen((current) => !current)}
+              type="button"
+            >
+              <span>{localeNames[locale]}</span>
+              <Icon name="chevron" size={16} />
+            </button>
+            {languageOpen && (
+              <ul className="portal-drawer-language-menu" role="listbox">
+                {(Object.keys(localeNames) as Locale[]).map((key) => (
+                  <li key={key} role="option" aria-selected={key === locale}>
+                    <button
+                      className={key === locale ? "selected" : ""}
+                      onClick={() => { setLocale(key); setLanguageOpen(false); }}
+                      type="button"
+                    >
+                      {localeNames[key]}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button className="portal-drawer-item" onClick={() => { setMenuOpen(false); setSearchOpen(true); }} type="button">
+            <Icon name="search" size={18} />
+            <span>{menuLabels.search}</span>
+          </button>
+          <button className="portal-drawer-item" onClick={() => { setMenuOpen(false); setUtilityDialog("info"); }} type="button">
+            <Icon name="info" size={18} />
+            <span>{menuLabels.help}</span>
+          </button>
+          <a className="portal-drawer-item" href="https://shahimeva.vercel.app" rel="noopener noreferrer" target="_blank" onClick={() => setMenuOpen(false)}>
+            <Icon name="globe" size={18} />
+            <span>{menuLabels.website}</span>
+          </a>
+          <button className="portal-drawer-item" onClick={() => { setMenuOpen(false); logout(); }} type="button">
+            <Icon name="logout" size={18} />
+            <span>{askLabels.logout}</span>
+          </button>
+        </div>
+      </aside>
 
       <main className={`main-layout ${mode === "EDIT" && activeAction === null ? "portal-main-layout" : ""}`}>
         {mode === "EDIT" && activeAction === null ? <MerchantPortal
@@ -826,15 +957,21 @@ export default function Home() {
       {utilityDialog && (
         <WorkflowDialog
           onClose={() => setUtilityDialog(null)}
-          title={aboutLabels.title}
-          eyebrow={aboutLabels.eyebrow}
+          title={helpLabels.title}
           closeLabel={askLabels.closeDialog}
         >
           <div className="utility-copy">
-            <p>{aboutLabels.intro}</p>
-            <p>{aboutLabels.ask}</p>
-            <p>{aboutLabels.voice}</p>
-            <p>{aboutLabels.edit}</p>
+            <p>{helpLabels.body}</p>
+          </div>
+          <div className="help-contacts">
+            <a className="help-contact" href="https://wa.me/918521567359?text=Hi%20iSellOnline%2C%20I%20need%20help%20with%20managing%20items%20in%20my%20portal.%20Please%20get%20back%20to%20me%20ASAP.%20Thanks!" rel="noopener noreferrer" target="_blank">
+              <Icon name="whatsapp" size={18} />
+              <span>WhatsApp</span>
+            </a>
+            <a className="help-contact" href="mailto:mayankbishwas@gmail.com">
+              <Icon name="mail" size={18} />
+              <span>mayankbishwas@gmail.com</span>
+            </a>
           </div>
         </WorkflowDialog>
       )}

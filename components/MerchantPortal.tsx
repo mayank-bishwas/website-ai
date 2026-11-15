@@ -621,7 +621,7 @@ export function MerchantPortal({
   }
 
   return (
-    <div className="portal-root" lang={locale}>
+    <div className={`portal-root portal-locale-${locale}`} lang={locale}>
       {screen === "home" && (
         <section className="portal-home">
           <p className="portal-home-eyebrow">{t.welcome}</p>
@@ -1138,7 +1138,6 @@ export function MerchantPortal({
           </div>
           {formError && <p className="field-error" role="alert">{formError}</p>}
           <div className="portal-form-footer">
-            <span />
             <div>
               <button className="button button-outline" onClick={() => go("inventory")} type="button">{t.cancel}</button>
               <button

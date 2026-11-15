@@ -7,11 +7,6 @@ export const metadata: Metadata = {
     template: "Website Assistant | Shahi Meva x iSellOnline",
   },
   description: "A conversational website and inventory assistant for Shahi Meva.",
-  icons: {
-    icon: ["/favicon.svg", "/favicon.ico", "/favicon.png"],
-    shortcut: "/favicon.svg",
-    apple: "/apple-touch-icon.png",
-  },
   openGraph: {
     title: "Website Assistant | Shahi Meva x iSellOnline",
     description: "A conversational website and inventory assistant for Shahi Meva.",

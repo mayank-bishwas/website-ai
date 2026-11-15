@@ -1,0 +1,9 @@
+node_modules
+
+# Local configuration and generated files
+.env
+.env.*
+!.env.example
+.next/
+.DS_Store
+*.tsbuildinfo

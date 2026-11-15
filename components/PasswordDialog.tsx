@@ -15,7 +15,6 @@ export function PasswordDialog({
 }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [visible, setVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const text = passwordText[locale];
 
@@ -55,17 +54,9 @@ export function PasswordDialog({
                 setError("");
               }}
               placeholder={text.placeholder}
-              type={visible ? "text" : "password"}
+              type="password"
               value={password}
             />
-            <button
-              aria-label={visible ? text.hide : text.show}
-              className="icon-button"
-              onClick={() => setVisible((current) => !current)}
-              type="button"
-            >
-              <Icon name="eye" size={18} />
-            </button>
           </div>
           {error && <p className="field-error" role="alert">{error}</p>}
           <button className="button button-primary full-width" type="submit">
