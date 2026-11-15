@@ -20,8 +20,8 @@ export function mapKnowledgeRecords(records: KnowledgeRecord[]): KnowledgeEntry[
     return {
       id: index + 1,
       recordId: record.id,
-      updated: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(updatedAt),
-      updatedTime: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(updatedAt),
+      updated: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(updatedAt),
+      updatedTime: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" }).format(updatedAt),
       content: record.content,
       archived: record.status === "archived",
     };

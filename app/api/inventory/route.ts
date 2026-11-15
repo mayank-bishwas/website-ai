@@ -178,8 +178,8 @@ function parseProductInput(value: unknown, creating: boolean): ParsedInput | str
   function displayDate(value: string): { date: string; time: string } {
     const date = new Date(value);
     return {
-      date: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(date),
-      time: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date),
+      date: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(date),
+      time: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" }).format(date),
     };
   }
 

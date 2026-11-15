@@ -19,10 +19,26 @@ const RATE_WINDOW_MS = 60_000;
 const rateWindow = { startedAt: 0, count: 0 };
 
 const ALLOWED_ORIGINS = new Set([
-  "http://localhost:3002",
   "https://shahimeva.vercel.app",
-  "http://localhost:8000",
+  "https://shahimeva.in",
+  "https://www.shahimeva.in",
 ]);
+
+function isLocalOrigin(origin: string): boolean {
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== "http:") return false;
+    const hostname = parsed.hostname.replace(/^\[|\]$/g, "");
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  return ALLOWED_ORIGINS.has(origin) || isLocalOrigin(origin);
+}
 
 function isRateLimited(): boolean {
   const now = Date.now();
@@ -35,7 +51,7 @@ function isRateLimited(): boolean {
 }
 
 function corsHeaders(origin: string | null): Record<string, string> {
-  if (!origin || !ALLOWED_ORIGINS.has(origin)) return {};
+  if (!origin || !isAllowedOrigin(origin)) return {};
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
