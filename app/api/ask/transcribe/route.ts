@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { isAllowedLocalAskOrigin, isAskLocalAccessAllowed } from "@/lib/ask/access";
+import { isSameOriginRequest } from "@/lib/ask/access";
 import { transcribeGeminiAudio } from "@/lib/ask/providers/gemini";
 import { getWebmDurationMs } from "@/lib/voice/webm-duration";
 import { validateWebmAudioUpload } from "@/lib/voice/validation";
@@ -9,26 +9,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_REQUEST_BYTES = 10_500_000;
-
-function localOnly(request: Request): boolean {
-  try {
-    return isAskLocalAccessAllowed({
-      nodeEnv: process.env.NODE_ENV,
-      vercel: process.env.VERCEL,
-      hostname: new URL(request.url).hostname,
-    });
-  } catch {
-    return false;
-  }
-}
-
-function sameOrigin(request: Request): boolean {
-  return isAllowedLocalAskOrigin({
-    origin: request.headers.get("origin"),
-    requestUrl: request.url,
-    hostHeader: request.headers.get("host"),
-  });
-}
 
 function json(data: unknown, status = 200): Response {
   return Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -68,8 +48,7 @@ function safeErrorCategory(error: unknown): string {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!localOnly(request)) return json({ error: "Voice transcription is enabled only for local development." }, 404);
-  if (!sameOrigin(request)) return json({ error: "Request origin is not allowed." }, 403);
+  if (!isSameOriginRequest(request)) return json({ error: "Request origin is not allowed." }, 403);
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("multipart/form-data")) {
     return json({ error: "Send a WebM audio recording." }, 415);
   }

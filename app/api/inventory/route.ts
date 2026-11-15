@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { isAllowedLocalAskOrigin, isAskLocalAccessAllowed } from "@/lib/ask/access";
+import { isMerchantAuthenticated, isSameOriginRequest } from "@/lib/ask/access";
 import type { InventoryProduct } from "@/lib/inventory/types";
 
 export const runtime = "nodejs";
@@ -68,31 +68,11 @@ function json(data: unknown, status = 200): Response {
   return Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-function isLocalDevelopmentRequest(request: Request): boolean {
-  try {
-    return isAskLocalAccessAllowed({
-      nodeEnv: process.env.NODE_ENV,
-      vercel: process.env.VERCEL,
-      hostname: new URL(request.url).hostname,
-    });
-  } catch {
-    return false;
+function requireMerchantRequest(request: Request): Response | null {
+  if (!isSameOriginRequest(request)) return json({ error: "The request origin is not allowed." }, 403);
+  if (!isMerchantAuthenticated(request)) {
+    return json({ error: "Merchant authentication required." }, 401);
   }
-}
-
-function hasSameOrigin(request: Request): boolean {
-  return isAllowedLocalAskOrigin({
-    origin: request.headers.get("origin"),
-    requestUrl: request.url,
-    hostHeader: request.headers.get("host"),
-  });
-}
-
-function requireLocalRequest(request: Request): Response | null {
-  if (!isLocalDevelopmentRequest(request)) {
-    return json({ error: "Inventory editing is available only in local development." }, 404);
-  }
-  if (!hasSameOrigin(request)) return json({ error: "The request origin is not allowed." }, 403);
   return null;
 }
 
@@ -428,7 +408,7 @@ function parseProductInput(value: unknown, creating: boolean): ParsedInput | str
   }
 
   export async function GET(request: Request): Promise<Response> {
-    const denied = requireLocalRequest(request);
+    const denied = requireMerchantRequest(request);
     if (denied) return denied;
     try {
       return json(await fetchProducts());
@@ -439,7 +419,7 @@ function parseProductInput(value: unknown, creating: boolean): ParsedInput | str
   }
 
   export async function POST(request: Request): Promise<Response> {
-    const denied = requireLocalRequest(request);
+    const denied = requireMerchantRequest(request);
     if (denied) return denied;
     if (!request.headers.get("content-type")?.toLowerCase().includes("multipart/form-data")) {
       return json({ error: "Send product details and images as multipart form data." }, 415);
@@ -454,7 +434,7 @@ function parseProductInput(value: unknown, creating: boolean): ParsedInput | str
   }
 
   export async function PATCH(request: Request): Promise<Response> {
-    const denied = requireLocalRequest(request);
+    const denied = requireMerchantRequest(request);
     if (denied) return denied;
     const contentType = request.headers.get("content-type")?.toLowerCase() ?? "";
 

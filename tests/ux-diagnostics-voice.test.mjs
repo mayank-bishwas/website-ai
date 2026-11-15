@@ -319,7 +319,7 @@ test("voice route uses dedicated transcription and returns no provider diagnosti
   const recorder = await readFile(new URL("../components/AskComposer.tsx", import.meta.url), "utf8");
   const voice = await readFile(new URL("../lib/voice/use-voice-transcription.ts", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  assert.match(route, /isAskLocalAccessAllowed/);
+  assert.match(route, /isSameOriginRequest/);
   assert.match(route, /transcribeGeminiAudio/);
   assert.match(route, /"gemini-3\.5-transcribe"/);
   assert.doesNotMatch(route, /transcribeOpenRouterAudio|OPENROUTER_API_KEY/);

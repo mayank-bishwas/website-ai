@@ -4,6 +4,7 @@ type IconName =
   | "external"
   | "lock"
   | "unlock"
+  | "logout"
   | "arrow-up"
   | "mic"
   | "pause"
@@ -76,6 +77,13 @@ export function Icon({
           <rect x="5" y="10" width="14" height="11" rx="2" />
           <path d="M8 10V7a4 4 0 0 1 7.5-2" />
           <path d="M12 14v3" />
+        </>
+      )}
+      {name === "logout" && (
+        <>
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+          <polyline points="10 17 15 12 10 7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
         </>
       )}
       {name === "arrow-up" && (

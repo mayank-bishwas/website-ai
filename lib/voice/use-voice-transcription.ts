@@ -190,6 +190,7 @@ export function useVoiceTranscription(locale: Locale) {
         form.append("audio", audio, "voice-message.webm");
         const response = await fetch("/api/ask/transcribe", {
           method: "POST",
+          credentials: "include",
           body: form,
           cache: "no-store",
           signal: controller.signal,

@@ -1,3 +1,8 @@
+import {
+  isMerchantAuthenticated,
+  shouldUseSecureCookie,
+} from "./merchant-auth.ts";
+
 export function isAskLocalAccessAllowed(environment: {
   nodeEnv: string | undefined;
   vercel: string | undefined;
@@ -37,3 +42,20 @@ export function isAllowedLocalAskOrigin(input: {
     return false;
   }
 }
+
+export function isSameOriginRequest(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  const hostHeader = request.headers.get("host");
+  if (origin === null) return true; // non-browser clients (e.g., scripts)
+  if (!hostHeader) return false;
+  try {
+    const originUrl = new URL(origin);
+    const hostUrl = new URL(`${originUrl.protocol}//${hostHeader}`);
+    return originUrl.host.toLowerCase() === hostUrl.host.toLowerCase();
+  } catch {
+    return false;
+  }
+}
+
+export { isMerchantAuthenticated } from "./merchant-auth.ts";
+export { shouldUseSecureCookie } from "./merchant-auth.ts";

@@ -2,7 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPublishedCatalog } from "@/lib/ask/catalog";
 import { getPublishedKnowledgeEntries, getActiveWebsiteContent } from "@/lib/ask/catalog";
 import { answerAsk } from "@/lib/ask/answer";
-import { isAllowedLocalAskOrigin, isAskLocalAccessAllowed } from "@/lib/ask/access";
+import { isSameOriginRequest } from "@/lib/ask/access";
 import { requestGemini } from "@/lib/ask/providers/gemini";
 import { requestOpenRouter } from "@/lib/ask/providers/openrouter";
 import { ASK_SYSTEM_INSTRUCTION } from "@/lib/ask/prompt";
@@ -17,7 +17,6 @@ import { countKnowledgeWords } from "@/lib/portal-knowledge";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const ASK_DISABLED_MESSAGE = "ASK is enabled only for local development until secure sign-in is available.";
 const MAX_BODY_BYTES = 150_000;
 const MAX_QUESTION_CHARS = 2_000;
 const MAX_HISTORY_MESSAGES = 10;
@@ -26,26 +25,6 @@ const MAX_KNOWLEDGE_CHARS = 30_000;
 const REQUESTS_PER_MINUTE = 20;
 const RATE_WINDOW_MS = 60_000;
 const rateWindow = { startedAt: 0, count: 0 };
-
-function isLocalDevelopmentRequest(request: Request): boolean {
-  try {
-    return isAskLocalAccessAllowed({
-      nodeEnv: process.env.NODE_ENV,
-      vercel: process.env.VERCEL,
-      hostname: new URL(request.url).hostname,
-    });
-  } catch {
-    return false;
-  }
-}
-
-function hasSameOrigin(request: Request): boolean {
-  return isAllowedLocalAskOrigin({
-    origin: request.headers.get("origin"),
-    requestUrl: request.url,
-    hostHeader: request.headers.get("host"),
-  });
-}
 
 function isRateLimited(): boolean {
   const now = Date.now();
@@ -126,8 +105,7 @@ function logProviderAttempt(attempt: {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!isLocalDevelopmentRequest(request)) return json({ error: ASK_DISABLED_MESSAGE }, 404);
-  if (!hasSameOrigin(request)) return json({ error: "Request origin is not allowed." }, 403);
+  if (!isSameOriginRequest(request)) return json({ error: "Request origin is not allowed." }, 403);
   if (isRateLimited()) return json({ error: "Please wait a moment before trying again." }, 429);
   if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) {
     return json({ error: "Send a text question as JSON." }, 415);

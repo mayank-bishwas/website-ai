@@ -29,6 +29,7 @@ export const askText = {
     closeDialog: "Close dialog",
     aboutPrototype: "About the assistant",
     openWebsite: "Open Shahi Meva website",
+    logout: "Log out",
     thinking: ["Thinking…", "Just a moment…", "Finding the right information…", "Almost there…"],
     thinkingLabel: "Assistant is thinking",
     conversationLabel: "ASK conversation",
@@ -77,6 +78,7 @@ export const askText = {
     closeDialog: "डायलॉग बंद करें",
     aboutPrototype: "सहायक के बारे में",
     openWebsite: "शाही मेवा की वेबसाइट खोलें",
+    logout: "लॉग आउट",
     thinking: ["सोच रहे हैं…", "बस एक पल…", "सही जानकारी ढूँढ रहे हैं…", "बस हो गया…"],
     thinkingLabel: "सहायक जवाब तैयार कर रहा है",
     conversationLabel: "ASK बातचीत",
@@ -121,6 +123,7 @@ export const askText = {
   closeDialog: string;
   aboutPrototype: string;
   openWebsite: string;
+  logout: string;
   thinking: readonly string[];
   thinkingLabel: string;
   conversationLabel: string;

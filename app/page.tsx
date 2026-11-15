@@ -191,6 +191,7 @@ export default function Home() {
   const [utilityDialog, setUtilityDialog] = useState<"info" | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sessionRestored, setSessionRestored] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const askInFlight = useRef(false);
   const askRequest = useRef<AbortController | null>(null);
@@ -212,7 +213,7 @@ export default function Home() {
     setKnowledgeLoading(true);
     setKnowledgeError("");
     try {
-      const response = await fetch("/api/knowledge", { cache: "no-store" });
+      const response = await fetch("/api/knowledge", { cache: "no-store", credentials: "include" });
       const result = await response.json() as { entries?: KnowledgeRecord[]; error?: string };
       if (!response.ok || !Array.isArray(result.entries)) {
         throw new Error(result.error || "Knowledge Base entries could not be loaded.");
@@ -233,6 +234,29 @@ export default function Home() {
   useEffect(() => {
     void refreshKnowledge();
   }, [refreshKnowledge]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function restoreSession() {
+      try {
+        const response = await fetch("/api/merchant/session", { cache: "no-store" });
+        const result = await response.json() as { authenticated?: boolean };
+        if (cancelled) return;
+        if (response.ok && result.authenticated) {
+          setEditUnlocked(true);
+          setMode("EDIT");
+        }
+      } catch {
+        // Session restore is best-effort; unauthenticated users stay in ASK mode.
+      } finally {
+        if (!cancelled) setSessionRestored(true);
+      }
+    }
+    void restoreSession();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
@@ -286,6 +310,7 @@ export default function Home() {
     try {
       const response = await fetch("/api/ask", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
         body: JSON.stringify({
@@ -427,20 +452,43 @@ export default function Home() {
     }
   }
 
-  function verifyMockPassword(password: string) {
-    if (password !== "shahi123") {
-      return false;
-    }
-    setEditUnlocked(true);
+  function logout() {
     askRequest.current?.abort();
     askRequest.current = null;
     askInFlight.current = false;
     setThinking(false);
     setAskMessages([]);
     setAskDraft("");
-    setMode("EDIT");
-    setPasswordOpen(false);
-    return true;
+    setAskError("");
+    setMode("ASK");
+    setEditUnlocked(false);
+    setActiveAction(null);
+    setWorkflowStep("form");
+    setComposerImages([]);
+    void fetch("/api/merchant/logout", { method: "POST" });
+  }
+
+  async function verifyMerchantPassword(password: string): Promise<boolean> {
+    try {
+      const response = await fetch("/api/merchant/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (!response.ok) return false;
+      setEditUnlocked(true);
+      askRequest.current?.abort();
+      askRequest.current = null;
+      askInFlight.current = false;
+      setThinking(false);
+      setAskMessages([]);
+      setAskDraft("");
+      setMode("EDIT");
+      setPasswordOpen(false);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   function chooseAction(action: EditAction) {
@@ -656,6 +704,7 @@ export default function Home() {
           <button aria-label={askLabels.searchConversation} className="icon-button" onClick={() => setSearchOpen(true)} title={askLabels.searchConversation} type="button"><Icon name="search" /></button>
           <button aria-label={askLabels.aboutPrototype} className="icon-button" onClick={() => setUtilityDialog("info")} title={askLabels.aboutPrototype} type="button"><Icon name="info" /></button>
           <a aria-label={askLabels.openWebsite} className="icon-button" href="https://shahimeva.vercel.app" rel="noopener noreferrer" target="_blank" title={askLabels.openWebsite}><Icon name="external" /></a>
+          <button aria-label={askLabels.logout} className="icon-button" onClick={logout} title={askLabels.logout} type="button"><Icon name="logout" size={15} /></button>
         </div>
       </header>
 
@@ -763,7 +812,7 @@ export default function Home() {
       </main>
 
       {passwordOpen && (
-        <PasswordDialog locale={locale} onClose={() => setPasswordOpen(false)} onUnlock={verifyMockPassword} />
+        <PasswordDialog locale={locale} onClose={() => setPasswordOpen(false)} onUnlock={verifyMerchantPassword} />
       )}
       {publishConfirm && (
         <WorkflowDialog onClose={() => setPublishConfirm(false)} title={editLabels.productPublishConfirm} eyebrow={editLabels.guidedWorkflow} closeLabel={editLabels.closeDialog}>

@@ -11,17 +11,24 @@ export function PasswordDialog({
 }: {
   locale: Locale;
   onClose: () => void;
-  onUnlock: (password: string) => boolean;
+  onUnlock: (password: string) => Promise<boolean>;
 }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [visible, setVisible] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const text = passwordText[locale];
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const unlocked = onUnlock(password);
-    setError(unlocked ? "" : text.error);
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const unlocked = await onUnlock(password);
+      setError(unlocked ? "" : text.error);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

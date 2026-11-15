@@ -163,7 +163,7 @@ export function MerchantPortal({
   async function loadInventory(): Promise<Product[] | null> {
     setInventoryLoading(true);
     try {
-      const response = await fetch("/api/inventory", { cache: "no-store" });
+      const response = await fetch("/api/inventory", { cache: "no-store", credentials: "include" });
       const result = await response.json() as { products?: Product[]; families?: ProductFamily[]; error?: string };
       if (!response.ok || !result.products || !result.families) {
         throw new Error(result.error || t.inventoryLoadError);
@@ -288,6 +288,7 @@ export function MerchantPortal({
     try {
       const response = await fetch("/api/knowledge", {
         method: existing ? "PATCH" : "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(existing
           ? { id: existing.recordId, action: "edit", content: kbContent.trim() }
@@ -313,6 +314,7 @@ export function MerchantPortal({
     try {
       const response = await fetch("/api/knowledge", {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: entry.recordId, action: entry.archived ? "restore" : "archive" }),
       });
@@ -548,7 +550,11 @@ export function MerchantPortal({
       const endpoint = productSku
         ? `/api/inventory?sku=${encodeURIComponent(productSku)}`
         : "/api/inventory";
-      const response = await fetch(endpoint, { method: productSku ? "PATCH" : "POST", body: form });
+      const response = await fetch(endpoint, {
+        method: productSku ? "PATCH" : "POST",
+        credentials: "include",
+        body: form,
+      });
       const result = await response.json() as { error?: string; sku?: string };
       if (!response.ok) throw new Error(result.error || t.productSaveError);
       if (!editingSku && !result.sku) throw new Error(t.productSaveError);
@@ -588,6 +594,7 @@ export function MerchantPortal({
     try {
       const response = await fetch("/api/inventory", {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sku: item.sku, action: item.archived ? "restore" : "archive" }),
       });

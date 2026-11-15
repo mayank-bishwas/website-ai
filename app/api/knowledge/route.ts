@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { countKnowledgeWords } from "@/lib/portal-knowledge";
-import { isAllowedLocalAskOrigin, isAskLocalAccessAllowed } from "@/lib/ask/access";
+import { isMerchantAuthenticated, isSameOriginRequest } from "@/lib/ask/access";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,25 +10,6 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 
 function json(data: unknown, status = 200): Response {
   return Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
-}
-
-function isAllowedRequest(request: Request): boolean {
-  try {
-    return (
-      isAskLocalAccessAllowed({
-        nodeEnv: process.env.NODE_ENV,
-        vercel: process.env.VERCEL,
-        hostname: new URL(request.url).hostname,
-      }) &&
-      isAllowedLocalAskOrigin({
-        origin: request.headers.get("origin"),
-        requestUrl: request.url,
-        hostHeader: request.headers.get("host"),
-      })
-    );
-  } catch {
-    return false;
-  }
 }
 
 async function readJson(request: Request): Promise<unknown | Response> {
@@ -62,7 +43,8 @@ function validContent(value: unknown): value is string {
 }
 
 export async function GET(request: Request): Promise<Response> {
-  if (!isAllowedRequest(request)) return json({ error: "Knowledge Base is available only in local development." }, 404);
+  if (!isSameOriginRequest(request)) return json({ error: "Request origin is not allowed." }, 403);
+  if (!isMerchantAuthenticated(request)) return json({ error: "Merchant authentication required." }, 401);
   try {
     const { data, error } = await createSupabaseServerClient()
       .from("knowledge_entries")
@@ -81,7 +63,8 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!isAllowedRequest(request)) return json({ error: "Knowledge Base is available only in local development." }, 404);
+  if (!isSameOriginRequest(request)) return json({ error: "Request origin is not allowed." }, 403);
+  if (!isMerchantAuthenticated(request)) return json({ error: "Merchant authentication required." }, 401);
   const body = await readJson(request);
   if (isResponse(body)) return body;
   if (!isObject(body) || !validContent(body.content)) {
@@ -106,7 +89,8 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 export async function PATCH(request: Request): Promise<Response> {
-  if (!isAllowedRequest(request)) return json({ error: "Knowledge Base is available only in local development." }, 404);
+  if (!isSameOriginRequest(request)) return json({ error: "Request origin is not allowed." }, 403);
+  if (!isMerchantAuthenticated(request)) return json({ error: "Merchant authentication required." }, 401);
   const body = await readJson(request);
   if (isResponse(body)) return body;
   if (!isObject(body) || typeof body.id !== "string" || !UUID_PATTERN.test(body.id)) {
