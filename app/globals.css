@@ -225,7 +225,7 @@ input:focus-visible {
   border-radius: 999px;
   background: rgb(255 255 255 / 55%);
   color: #536454;
-  font-size: 11px;
+  font-size: 16px;
   transition: border-color .16s ease, background .16s ease;
 }
 
@@ -2394,7 +2394,7 @@ input:focus-visible {
 
   .suggestion {
     justify-content: space-between;
-    font-size: 10px;
+    font-size: 15px;
   }
 
   .form-grid,

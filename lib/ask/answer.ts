@@ -1,6 +1,7 @@
 import { runWithFallback, AllProvidersFailedError } from "./fallback.ts";
 import { buildAskPrompt } from "./prompt.ts";
 import { detectAskLanguage, isContactRequest } from "./scope.ts";
+import { getConversationInsights, parseDateRange, type ConversationInsights } from "./conversation-insights.ts";
 import type {
   AskEvidence,
   CatalogProduct,
@@ -18,6 +19,7 @@ type AnswerAskInput = {
   getCatalog?: () => Promise<CatalogProduct[]>;
   getKnowledge?: () => Promise<KnowledgeFact[]>;
   getWebsiteContent?: () => Promise<{ source_url: string; content: string }[]>;
+  getConversations?: () => Promise<ConversationInsights>;
   primary: ProviderConfig;
   fallback: ProviderConfig;
   invoke: ProviderInvocation;
@@ -29,7 +31,7 @@ type AnswerAskInput = {
 
 function failureReply(question: string): string {
   const replies = {
-    en: "I’m having trouble right now. Please try again in a moment.",
+    en: "I'm having trouble right now. Please try again in a moment.",
     hi: "अभी जवाब नहीं मिल पाया। कृपया थोड़ी देर बाद फिर कोशिश करें।",
     ar: "تعذّر إعداد الإجابة الآن. يُرجى المحاولة مرة أخرى بعد قليل.",
     bn: "এখন উত্তর দিতে সমস্যা হচ্ছে। অনুগ্রহ করে একটু পরে আবার চেষ্টা করুন।",
@@ -66,14 +68,15 @@ export type AnswerResult = {
 
 export async function answerAsk(input: AnswerAskInput): Promise<AnswerResult> {
   const evidence: AskEvidence[] = [];
-  // Load the three evidence sources concurrently; each failure is isolated.
-  const [catalogResult, knowledgeResult, websiteResult] = await Promise.allSettled([
+  // Load the evidence sources concurrently; each failure is isolated.
+  const [catalogResult, knowledgeResult, websiteResult, conversationsResult] = await Promise.allSettled([
     (async () => {
       if (!input.getCatalog) throw new Error("Inventory loader unavailable.");
       return input.getCatalog();
     })(),
     (async () => (input.getKnowledge ? input.getKnowledge() : []))(),
     (async () => (input.getWebsiteContent ? input.getWebsiteContent() : []))(),
+    (async () => (input.getConversations ? input.getConversations() : null))(),
   ]);
 
   if (catalogResult.status === "fulfilled") {
@@ -120,6 +123,28 @@ export async function answerAsk(input: AnswerAskInput): Promise<AnswerResult> {
       sourceLabel: "Shahi Meva published website content",
       status: "unavailable",
       message: "The published website content could not be read.",
+    });
+  }
+
+  if (conversationsResult.status === "fulfilled" && conversationsResult.value) {
+    const insights = conversationsResult.value;
+    evidence.push({
+      source: "conversations",
+      sourceLabel: "Shahi Meva customer conversations",
+      status: insights.totalMessages ? "available" : "empty",
+      data: {
+        totalMessages: insights.totalMessages,
+        sessionCount: insights.sessionCount,
+        dateRange: insights.dateRange,
+        topics: insights.topics,
+        unanswered: insights.unanswered.map((message) => ({
+          session_id: message.session_id,
+          message_text: message.message_text,
+          created_at: message.created_at,
+        })),
+        productRequests: insights.productRequests,
+      },
+      ...(insights.totalMessages ? {} : { message: "There are no customer conversations in this date range." }),
     });
   }
 

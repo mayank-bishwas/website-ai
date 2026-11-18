@@ -23,7 +23,7 @@ export type KnowledgeFact = {
 };
 
 export type AskEvidence = {
-  source: "inventory" | "knowledge-base" | "website" | "ga4" | "search-console";
+  source: "inventory" | "knowledge-base" | "website" | "ga4" | "search-console" | "conversations";
   sourceLabel: string;
   status: "available" | "empty" | "unavailable";
   data?: unknown;

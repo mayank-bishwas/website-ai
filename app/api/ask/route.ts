@@ -2,10 +2,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPublishedCatalog } from "@/lib/ask/catalog";
 import { getPublishedKnowledgeEntries, getActiveWebsiteContent } from "@/lib/ask/catalog";
 import { answerAsk } from "@/lib/ask/answer";
-import { isSameOriginRequest } from "@/lib/ask/access";
+import { isSameOriginRequest, isMerchantAuthenticated } from "@/lib/ask/access";
+import { getCustomerMerchantSlug } from "@/lib/customer/logging";
 import { requestGemini } from "@/lib/ask/providers/gemini";
 import { requestOpenRouter } from "@/lib/ask/providers/openrouter";
 import { ASK_SYSTEM_INSTRUCTION } from "@/lib/ask/prompt";
+import { getConversationInsights, parseDateRange } from "@/lib/ask/conversation-insights";
 import type {
   ConversationTurn,
   KnowledgeFact,
@@ -170,6 +172,12 @@ export async function POST(request: Request): Promise<Response> {
         getCatalog: () => getPublishedCatalog(createSupabaseServerClient()),
         getKnowledge: () => getPublishedKnowledgeEntries(createSupabaseServerClient()),
         getWebsiteContent: () => getActiveWebsiteContent(createSupabaseServerClient()),
+        getConversations: () =>
+          getConversationInsights(
+            createSupabaseServerClient(),
+            getCustomerMerchantSlug(),
+            parseDateRange(exactQuestion),
+          ),
         primary,
         fallback,
         signal,

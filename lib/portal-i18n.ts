@@ -9,11 +9,11 @@ export const askText = {
   en: {
     welcome: "How can I help you today?",
     suggestions: [
+      "Which products are customers asking about most?",
       "Which products are currently out of stock?",
-      "What sizes of cashews are available?",
-      "What information does the shop provide about delivery?",
+      "Are there any active offers or discounts?",
     ],
-    placeholder: "Ask Shahi Meva about products, prices, or availability...",
+    placeholder: "Ask about your customer assistant, stock, and knowledge base...",
     inputLabel: "Ask Shahi Meva",
     homeLabel: "Shahi Meva Website Assistant home",
     brandLabel: "WEBSITE ASSISTANT",
@@ -60,11 +60,11 @@ export const askText = {
   hi: {
     welcome: "आज मैं आपकी क्या मदद कर सकता हूँ?",
     suggestions: [
-      "अभी कौन से उत्पाद स्टॉक में नहीं हैं?",
-      "काजू के कौन-कौन से पैक उपलब्ध हैं?",
-      "डिलीवरी के बारे में दुकान की क्या जानकारी है?",
+      "मेरे कौन से प्रोडक्ट के बारे में ग्राहक सबसे ज़्यादा पूछ रहे हैं?",
+      "मेरे कौन-कौन से उत्पाद अभी स्टॉक में नहीं हैं?",
+      "क्या अभी कोई ऑफर या डिस्काउंट एक्टिव है?",
     ],
-    placeholder: "उत्पादों, कीमतों या उपलब्धता के बारे में पूछें…",
+    placeholder: "अपने कस्टमर असिस्टेंट, स्टॉक और ज्ञानकोश के बारे में पूछें...",
     inputLabel: "शाही मेवा से पूछें",
     homeLabel: "शाही मेवा वेबसाइट सहायक का होम पेज",
     brandLabel: "वेबसाइट सहायक",
